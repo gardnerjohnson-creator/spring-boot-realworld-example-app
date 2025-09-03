@@ -78,23 +78,28 @@ class UpdateUserValidator implements ConstraintValidator<UpdateUserConstraint, U
     final User targetUser = value.getTargetUser();
 
     boolean isEmailValid =
-        userRepository.findByEmail(inputEmail).map(user -> user.equals(targetUser)).orElse(true);
+        inputEmail == null
+            || userRepository
+                .findByEmail(inputEmail)
+                .map(user -> user.equals(targetUser))
+                .orElse(true);
     boolean isUsernameValid =
-        userRepository
-            .findByUsername(inputUsername)
-            .map(user -> user.equals(targetUser))
-            .orElse(true);
+        inputUsername == null
+            || userRepository
+                .findByUsername(inputUsername)
+                .map(user -> user.equals(targetUser))
+                .orElse(true);
     if (isEmailValid && isUsernameValid) {
       return true;
     } else {
       context.disableDefaultConstraintViolation();
-      if (!isEmailValid) {
+      if (!isEmailValid && inputEmail != null) {
         context
             .buildConstraintViolationWithTemplate("email already exist")
             .addPropertyNode("email")
             .addConstraintViolation();
       }
-      if (!isUsernameValid) {
+      if (!isUsernameValid && inputUsername != null) {
         context
             .buildConstraintViolationWithTemplate("username already exist")
             .addPropertyNode("username")
